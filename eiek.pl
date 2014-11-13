@@ -147,7 +147,10 @@ sub load_main {
 	my $revert_button = $content->new_button(
 		-text => "Revert a file to its contents at a particular commit",
 		-command => sub {
-			
+			my $file = Tkx::tk___getOpenFile(
+				-title => "Revert which file?",
+			);
+			eie_revert($file);
 		},
 	);
 	my $destroy_button = $content->new_button(
@@ -237,3 +240,35 @@ sub eie_list {
 	$lbox->g_pack();
 	$copy_button->g_pack();
 }	
+
+sub eie_revert {
+	my $file = shift;
+	$file = abs2rel($file, $cwd);
+	
+	my $window = $mw->new_toplevel;
+	$window->g_wm_title("Revert");
+	$window->g_wm_geometry("200x200+200+350");
+	my $etext;
+	my $entry = $window->new_ttk__entry(-textvariable => \$etext);
+
+	my $revert_button = $window->new_button(
+		-text => "Revert",
+		-command => sub {
+			my $commitid = $entry->get();
+			system ('eie', 'revert', $file, $commitid);
+			Tkx::tk___messageBox(
+				-parent => $window,
+				-title => "Revert",
+				-type => "ok",
+				-icon => "info",
+				-message => "File $file reverted to commit $commitid.",
+			);
+			$window->g_destroy();
+			
+		},
+	);
+
+
+	$entry->g_pack();
+	$revert_button->g_pack();
+}
