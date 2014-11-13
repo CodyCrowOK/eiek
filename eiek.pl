@@ -48,8 +48,8 @@ $splash->g_place(-relx => 0, -rely => 0, -relwidth => 1.0, -relheight => 1.0);
 $newrepo_button->g_place(-relx => 0, -rely => 0, -relwidth => 1.0, -relheight => .5);
 $loadrepo_button->g_place(-relx => 0, -rely => .5, -relwidth => 1.0, -relheight => .5);
 
-Tkx::wm_title($mw, "eiek");
-Tkx::wm_minsize($mw, 800, 600);
+$mw->g_wm_title("eiek");
+$mw->g_wm_geometry("800x600+25+50");
 
 Tkx::MainLoop();
 
@@ -138,7 +138,10 @@ sub load_main {
 	my $list_button = $content->new_button(
 		-text => "List all commits containing a particular file",
 		-command => sub {
-			
+			my $file = Tkx::tk___getOpenFile(
+				-title => "List for which file?",
+			);
+			eie_list($file);
 		},
 	);
 	my $revert_button = $content->new_button(
@@ -207,3 +210,30 @@ sub eie_commit {
 		-message => "All queued files committed successfully.",
 	);
 }
+
+sub eie_list {
+	my $file = shift;
+	$file = abs2rel($file, $cwd);
+	my $ret = `eie list $file`;
+	my @commits = split(/\n/, $ret);
+	shift @commits;
+	
+	my $window = $mw->new_toplevel;
+	$window->g_wm_title("List");
+	$window->g_wm_geometry("300x300+100+250");
+	#This is necessary for "Tcl formatted lists":
+	my $cnames = ''; foreach my $i (@commits) {$cnames = $cnames . ' {' . $i . '}';};
+	my $lbox = $window->new_tk__listbox(-height => 10, -listvariable => \$cnames);
+
+	my $copy_button = $window->new_button(
+		-text => "Copy selected commit ID to clipboard.",
+		-command => sub {
+			my $selected = $commits[$lbox->curselection()];
+			Tkx::clipboard_clear();
+			Tkx::clipboard_append($selected);
+		},
+	);
+	
+	$lbox->g_pack();
+	$copy_button->g_pack();
+}	
