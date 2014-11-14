@@ -156,7 +156,7 @@ sub load_main {
 	my $destroy_button = $content->new_button(
 		-text => "Destroy eie repository",
 		-command => sub {
-			
+			&eie_destroy;
 		},
 	);
 	$content->g_place(-relx => 0, -rely => 0, -relwidth => 1.0, -relheight => 1.0);
@@ -271,4 +271,32 @@ sub eie_revert {
 
 	$entry->g_pack();
 	$revert_button->g_pack();
+}
+
+sub eie_destroy {
+	my $yesno = Tkx::tk___messageBox(
+		-parent => $mw,
+		-title => "Destroy repository",
+		-type => "yesno",
+		-icon => "warning",
+		-message => "Are you sure you want to destroy your eie repository in $cwd?\n This cannot be undone.",
+	);
+	if ($yesno eq "yes") {
+		system ('eie', 'destroy');
+		my $destroyed_ok = Tkx::tk___messageBox(
+			-parent => $mw,
+			-title => "Destroy repository",
+			-type => "ok",
+			-icon => "info",
+			-message => "Repository in $cwd destroyed.",
+		);
+	} elsif ($yesno eq "no") {
+		my $not_destroyed = Tkx::tk___messageBox(
+			-parent => $mw,
+			-title => "Destroy repository",
+			-type => "ok",
+			-icon => "info",
+			-message => "Repository in $cwd NOT destroyed.",
+		);
+	}
 }
