@@ -65,12 +65,12 @@ sub create_menu {
 	);
 
 	$file->add_command(
-		-label => "New repository",
+		-label => "Switch repository",
 		-underline => 0,
-		-accelerator => "Ctrl+N",
-		-command => \&new,
+		-accelerator => "Ctrl+S",
+		-command => \&new_splash,
 	);
-	$mw->g_bind("<Control-n>", \&new);
+	$mw->g_bind("<Control-s>", \&new_splash);
 
 	$file->add_command(
 		-label => "Exit",
@@ -290,6 +290,7 @@ sub eie_destroy {
 			-icon => "info",
 			-message => "Repository in $cwd destroyed.",
 		);
+		my $newsplash = &new_splash;
 	} elsif ($yesno eq "no") {
 		my $not_destroyed = Tkx::tk___messageBox(
 			-parent => $mw,
@@ -299,4 +300,40 @@ sub eie_destroy {
 			-message => "Repository in $cwd NOT destroyed.",
 		);
 	}
+}
+
+sub new_splash {
+	my $window = $mw->new_toplevel;
+	$window->g_wm_title("Choose repository");
+	$window->g_wm_geometry("200x75+200+350");
+	#I'll be the first to admit that this is sloppy.
+	#Prompt the user, asking if they'd like to load a repo or create a new one.
+	my $loadrepo_button = $window->new_button(
+		-text => "Load repository",
+		-command => sub {
+			my $dirname = Tkx::tk___chooseDirectory();
+			if ($dirname) {
+				$cwd = $dirname;
+				chdir $cwd;
+				$window->g_destroy();
+			}
+		},
+	);
+
+	my $newrepo_button = $window->new_button(
+		-text => "New repository",
+		-command => sub {
+			my $dirname = Tkx::tk___chooseDirectory();
+			if ($dirname) {
+				$cwd = $dirname;
+				chdir $cwd;
+				&eie_init;
+				$window->g_destroy();
+			}
+		},
+	);
+
+	$newrepo_button->g_pack();
+	$loadrepo_button->g_pack();
+	
 }
